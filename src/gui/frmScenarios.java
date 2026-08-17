@@ -654,9 +654,11 @@ public class frmScenarios {
 								ArrayList<String> errorsBase=myModel.parseModel();
 								if(errorsBase.size()>0){
 									JOptionPane.showMessageDialog(frmScenarios, myModel.language.message.getString("err.base_case")); //Errors in base case model
+									progress.close();
 								}
 								else if(numScenarios==0){
 									JOptionPane.showMessageDialog(frmScenarios, myModel.language.message.getString("err.select_one_scenario")); //Please select at least one scenario to run!
+									progress.close();
 								}
 								else{
 									boolean cancelled=false;
@@ -1170,6 +1172,7 @@ public class frmScenarios {
 								myModel.validateModelObjects();
 								e.printStackTrace();
 								JOptionPane.showMessageDialog(frmScenarios, e.getMessage());
+								progress.close();
 								myModel.errorLog.recordError(e);
 							}
 						}

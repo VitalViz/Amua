@@ -397,8 +397,10 @@ public class frmSensOneWay {
 										JOptionPane.showMessageDialog(frmSensOneWay, myModel.language.message.getString("err.max_value_missing")); //Error: Max value missing!
 									}
 								}
+								
 								if(proceed==false) {
 									btnRun.setEnabled(true);
+									progress.close();
 									frmSensOneWay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 								}
 								
@@ -430,12 +432,16 @@ public class frmSensOneWay {
 										curParam.locked=false;
 										myModel.validateModelObjects();
 										JOptionPane.showMessageDialog(frmSensOneWay, myModel.language.message.getString("err.min_value")); //Error: Min Value
+										progress.close();
+										frmSensOneWay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 									}
 									if(errorsMax.size()>0){
 										error=true;
 										curParam.locked=false;
 										myModel.validateModelObjects();
 										JOptionPane.showMessageDialog(frmSensOneWay, myModel.language.message.getString("err.max_value")); //Error: Max value
+										progress.close();
+										frmSensOneWay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 									}
 
 									if(error==false){

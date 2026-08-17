@@ -512,6 +512,7 @@ public class frmEVPI {
 								} //end check if valid
 
 								btnRun.setEnabled(true);
+								progress.close();
 								frmEVPI.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 
 							} catch (Exception e) {
@@ -519,6 +520,7 @@ public class frmEVPI {
 								btnRun.setEnabled(true);
 								frmEVPI.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 								JOptionPane.showMessageDialog(frmEVPI, e.getMessage());
+								progress.close();
 								myModel.errorLog.recordError(e);
 							}
 						}

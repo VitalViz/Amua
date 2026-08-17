@@ -643,6 +643,7 @@ public class frmCalibrate {
 								catch(Exception e){
 									go=false;
 									JOptionPane.showMessageDialog(frmCalibrate,myModel.language.message.getString("err.score_expression")+": "+e.toString()); //Error in score expression
+									progress.close();
 									if(myModel.type==1){
 										myModel.markov.showTrace=origShowTrace;
 									}
@@ -802,6 +803,7 @@ public class frmCalibrate {
 								myModel.validateModelObjects();
 								e.printStackTrace();
 								JOptionPane.showMessageDialog(frmCalibrate, e.getMessage());
+								progress.close();
 								myModel.errorLog.recordError(e);
 							}
 						}

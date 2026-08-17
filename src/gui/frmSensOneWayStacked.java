@@ -414,7 +414,7 @@ public class frmSensOneWayStacked {
 								ArrayList<String> errorsBase=myModel.parseModel();
 								if(errorsBase.size()>0){
 									JOptionPane.showMessageDialog(frmSensOneWayStacked, myModel.language.message.getString("err.base_case")); //Errors in base case model!
-									
+									progress.close();
 								}
 								else{
 									frmSensOneWayStacked.setCursor(new Cursor(Cursor.WAIT_CURSOR));
@@ -569,12 +569,16 @@ public class frmSensOneWayStacked {
 												curParam.locked=false;
 												myModel.validateModelObjects();
 												JOptionPane.showMessageDialog(frmSensOneWayStacked, myModel.language.message.getString("err.min_value")); //Error: Min value"
+												progress.close();
+												frmSensOneWayStacked.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 											}
 											if(errorsMax.size()>0){
 												error=true;
 												curParam.locked=false;
 												myModel.validateModelObjects();
 												JOptionPane.showMessageDialog(frmSensOneWayStacked, myModel.language.message.getString("err.max_value")); //Error: Max value
+												progress.close();
+												frmSensOneWayStacked.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 											}
 
 											if(error==false){

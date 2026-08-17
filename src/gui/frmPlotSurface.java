@@ -235,6 +235,7 @@ public class frmPlotSurface {
 					}catch(Exception n){
 						JOptionPane.showMessageDialog(frmPlotSurface,language.message.getString("err.invalid_plot_spec")); //Invalid plot specification
 						ok=false;
+						progress.close();
 					}
 
 					if(ok){
@@ -301,6 +302,7 @@ public class frmPlotSurface {
 									JOptionPane.showMessageDialog(frmPlotSurface, e1.getMessage());
 									i=numIntervals; //end loop
 									j=numIntervals;
+									progress.close();
 								}
 								
 								dataSurface[0][i][j]=curVal;

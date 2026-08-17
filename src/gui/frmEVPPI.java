@@ -640,6 +640,7 @@ public class frmEVPPI {
 									frmEVPPI.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 									btnRun.setEnabled(true);
 									JOptionPane.showMessageDialog(frmEVPPI, e.getMessage());
+									progress.close();
 									myModel.errorLog.recordError(e);
 								}
 							}

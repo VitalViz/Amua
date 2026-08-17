@@ -322,6 +322,7 @@ public class frmBatch {
 
 								if(errorsBase.size()>0){
 									JOptionPane.showMessageDialog(frmBatch, myModel.language.message.getString("err.base_case")); //Errors in base case model!
+									progress.close();
 								}
 								else{
 									boolean cancelled=false;
@@ -612,6 +613,7 @@ public class frmBatch {
 							} catch (Exception e) {
 								e.printStackTrace();
 								JOptionPane.showMessageDialog(frmBatch, e.getMessage());
+								progress.close();
 								myModel.errorLog.recordError(e);
 							}
 						}

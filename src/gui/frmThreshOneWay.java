@@ -382,6 +382,10 @@ public class frmThreshOneWay {
 									}
 								}
 								
+								if(proceed==false) {
+									progress.close();
+								}
+								
 								
 								if(proceed==true){
 									//Get parameter
@@ -427,12 +431,16 @@ public class frmThreshOneWay {
 										curParam.locked=false;
 										myModel.validateModelObjects();
 										JOptionPane.showMessageDialog(frmThreshOneWay, myModel.language.message.getString("err.min_value")); //Error: Min value
+										progress.close();
+										frmThreshOneWay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 									}
 									if(errorsMax.size()>0){
 										error=true;
 										curParam.locked=false;
 										myModel.validateModelObjects();
 										JOptionPane.showMessageDialog(frmThreshOneWay, myModel.language.message.getString("err.max_value")); //Error: Max value
+										progress.close();
+										frmThreshOneWay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 									}
 
 									if(error==false){
@@ -689,6 +697,7 @@ public class frmThreshOneWay {
 								
 								frmThreshOneWay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 								btnRun.setEnabled(true);
+								progress.close();
 								
 							} catch (Exception e) {
 								frmThreshOneWay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));

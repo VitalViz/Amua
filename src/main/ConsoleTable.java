@@ -162,6 +162,10 @@ public class ConsoleTable{
 	}
 	
 	private int getStringWidth(String text) {
+		 // Direct Guard: An empty string has a width of 0 pixels
+	    if (text == null || text.isEmpty()) {
+	        return 0;
+	    }
         // Create a temporary Graphics2D just for measurement
         BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = img.createGraphics();

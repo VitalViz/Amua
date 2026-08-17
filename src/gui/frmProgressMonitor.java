@@ -16,6 +16,7 @@ public class frmProgressMonitor {
 	private final JLabel noteLabel;
 	private final JButton cancelButton;
 
+	private volatile boolean closed = false;
 	private volatile boolean canceled = false;
 	private int min;
 	private int max;
@@ -111,6 +112,8 @@ public class frmProgressMonitor {
 	}
 
 	public void close() {
+		if (closed) return;  // guard against multiple calls
+		closed = true;
 		SwingUtilities.invokeLater(() -> {
 			dialog.setVisible(false);
 			dialog.dispose();

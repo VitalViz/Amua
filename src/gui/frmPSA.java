@@ -1082,6 +1082,7 @@ public class frmPSA {
 
 								if(errorsBase.size()>0){
 									JOptionPane.showMessageDialog(frmPSA, myModel.language.message.getString("err.base_case")); //Errors in base case model!
+									progress.close();
 								}
 								else{
 									boolean cancelled=false;
@@ -1597,6 +1598,7 @@ public class frmPSA {
 								btnRun.setEnabled(true);
 								frmPSA.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 								JOptionPane.showMessageDialog(frmPSA, e.getMessage());
+								progress.close();
 								myModel.errorLog.recordError(e);
 							}
 						}

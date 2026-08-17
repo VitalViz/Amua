@@ -528,6 +528,7 @@ public class frmTornadoDiagram {
 								ArrayList<String> errorsBase=myModel.parseModel();
 								if(errorsBase.size()>0){
 									JOptionPane.showMessageDialog(frmTornadoDiagram, myModel.language.message.getString("err.base_case")); //Errors in base case model!
+									progress.close();
 								}
 								else{
 									boolean proceed=true;
@@ -550,6 +551,7 @@ public class frmTornadoDiagram {
 												//Invalid entry: [name]
 												String msg = MessageFormat.format(myModel.language.message.getString("err.invalid_entry_name"), paramName);
 												JOptionPane.showMessageDialog(frmTornadoDiagram, msg);
+												progress.close();
 												p=tableParams.getRowCount();
 											}
 											numRuns+=2;
@@ -637,6 +639,8 @@ public class frmTornadoDiagram {
 												curParam.locked=false;
 												myModel.validateModelObjects();
 												JOptionPane.showMessageDialog(frmTornadoDiagram, myModel.language.message.getString("err.min_value")+": "+paramNames.get(p)); //Error: Min value
+												progress.close();
+												frmTornadoDiagram.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 												break;
 											}
 											else{
@@ -683,6 +687,8 @@ public class frmTornadoDiagram {
 												curParam.locked=false;
 												myModel.validateModelObjects();
 												JOptionPane.showMessageDialog(frmTornadoDiagram, myModel.language.message.getString("err.max_value")+": "+paramNames.get(p)); //Error: Max value
+												progress.close();
+												frmTornadoDiagram.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 												break;
 											}
 											else{

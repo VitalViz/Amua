@@ -308,6 +308,7 @@ public class frmPlotFx {
 					}catch(Exception n){
 						JOptionPane.showMessageDialog(frmPlotFx,language.message.getString("err.invalid_plot_spec")); //Invalid plot specification
 						ok=false;
+						progress.close();
 					}
 
 					if(ok){
@@ -361,6 +362,7 @@ public class frmPlotFx {
 								e1.printStackTrace();
 								JOptionPane.showMessageDialog(frmPlotFx, e1.getMessage());
 								i=numIntervals; //end loop
+								progress.close();
 							}
 							curData[0][i]=x;
 							curData[1][i]=curY;

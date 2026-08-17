@@ -148,6 +148,7 @@ public class PSAResults{
 
 		if(errorsBase.size()>0){
 			JOptionPane.showMessageDialog(curFrm, myModel.language.message.getString("err.base_case")); //Errors in base case model!
+			progress.close();
 		}
 		else{
 

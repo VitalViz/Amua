@@ -422,6 +422,7 @@ public class frmSensTwoWay {
 								if(row1==row2){
 									proceed=false;
 									JOptionPane.showMessageDialog(frmSensTwoWay, myModel.language.message.getString("err.select_two_diff_params")); //Please select two different parameters!
+									progress.close();
 								}
 								else { //check bounds
 									String strMin1=(String)tableParams.getValueAt(row1,2);
@@ -458,6 +459,7 @@ public class frmSensTwoWay {
 								if(proceed==true && myModel.parseModel().size()>0){ //Check model
 									proceed=false;
 									JOptionPane.showMessageDialog(frmSensTwoWay, myModel.language.message.getString("err.base_case")); //Errors in base case model!
+									progress.close();
 								}
 
 								if(proceed==true) {
@@ -537,12 +539,16 @@ public class frmSensTwoWay {
 										curParam1.locked=false; curParam2.locked=false;
 										myModel.validateModelObjects();
 										JOptionPane.showMessageDialog(frmSensTwoWay, myModel.language.message.getString("err.min_value")); //Error: Min value
+										progress.close();
+										frmSensTwoWay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 									}
 									if(errorsMax.size()>0){
 										error=true;
 										curParam1.locked=false; curParam2.locked=false;
 										myModel.validateModelObjects();
 										JOptionPane.showMessageDialog(frmSensTwoWay, myModel.language.message.getString("err.max_value")); //Error: Max value
+										progress.close();
+										frmSensTwoWay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 									}
 
 									if(error==false){
@@ -778,6 +784,7 @@ public class frmSensTwoWay {
 									
 									frmSensTwoWay.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 									btnRun.setEnabled(true);
+									progress.close();
 								}
 							} catch (Exception e) {
 								curParam1.locked=false; curParam2.locked=false;
