@@ -32,7 +32,11 @@ public class Amua {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		String version="0.3.6";
+		//Builds of this fork carry a _vs suffix so they are never mistaken for the upstream
+		//release of the same number.  It reaches the jar name, the About box, the error log and
+		//the version stamped into saved models, and the update check ignores it when comparing
+		//against upstream.  Keep it on every future bump; build.ps1 will not build without it.
+		String version="0.3.7_vs";
 		
 		boolean gui=true;
 		if(args.length>0) {

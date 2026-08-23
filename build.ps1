@@ -74,6 +74,21 @@ if ($verLine -match "(\d+)") {
 }
 Write-Host "Using $verLine"
 
+# Single source of truth for the version, read from the same line the update check reads from
+# the upstream repository.
+$amuaSrc = Join-Path $src "main\Amua.java"
+$match = Get-Content $amuaSrc | Select-String 'String version="([^"]+)"'
+if ($null -eq $match) { throw "Could not find the version string in $amuaSrc" }
+$version = $match.Matches[0].Groups[1].Value
+
+# Builds of this fork are suffixed so they can never be confused with the upstream release of
+# the same number, in the jar name, the About box, the error log, or the version stamped into
+# saved models. Enforced here so a future bump cannot quietly drop it.
+if ($version -notmatch '_vs$') {
+	throw "Version '$version' in src/main/Amua.java must end with _vs for a build of this fork (e.g. '$version" + "_vs')."
+}
+Write-Host "Building Amua $version"
+
 if ($GetLibs) { Write-Host "Dependencies:"; Get-Libs }
 
 $missing = @()
@@ -130,8 +145,6 @@ Write-Host "Build complete -> $bin"
 # --- package ----------------------------------------------------------------
 
 if ($Jar) {
-	$amua = Get-Content (Join-Path $src "main\Amua.java") | Select-String 'String version="([^"]+)"'
-	$version = $amua.Matches[0].Groups[1].Value
 	if (-not (Test-Path $dist)) { New-Item -ItemType Directory $dist | Out-Null }
 
 	# Build a single self-contained jar with the dependencies unpacked into it, the way the
@@ -203,6 +216,7 @@ if ($Jar) {
 	$mb = [Math]::Round((Get-Item $jarFile).Length / 1MB, 1)
 	Write-Host "Packaged -> $jarFile ($mb MB, self-contained)"
 	Write-Host "Run it with: java -jar `"$jarFile`""
+	Write-Host "Tag this release as: git tag -a v$version -m `"Amua $version`""
 }
 
 # --- run --------------------------------------------------------------------
