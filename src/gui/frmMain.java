@@ -2404,13 +2404,15 @@ public class frmMain {
 				recentFiles.updateList(filepath,newModel.type);
 
 				checkAnyModels();
-
-				frmMain.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			}
-		}catch(Exception e){
-			frmMain.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			console.print(language.message.getString("error")+": "+e.getMessage()); console.newLine(); //Error
-			errorLog.recordError(e);
+		}catch(Throwable e){
+			//Throwable, not Exception: a missing dependency arrives as NoClassDefFoundError, and
+			//swallowing it here is what used to leave the window sitting under a wait cursor with
+			//nothing reported.
+			console.print(language.message.getString("error")+": "+e.toString()); console.newLine(); //Error
+			errorLog.recordError(e instanceof Exception ? (Exception)e : new Exception(e));
+		}finally{
+			frmMain.setCursor(new Cursor(Cursor.DEFAULT_CURSOR)); //always give the cursor back
 		}
 	}
 
@@ -2438,7 +2440,7 @@ public class frmMain {
 				}
 				br.close();
 
-				if(!gitVersion.equals(version)) { //different git version
+				if(isNewerVersion(gitVersion,version)) { //git version is actually newer
 					String curTitle=language.base.getString("title.amua_update"); //Amua Update
 					String message=language.message.getString("ask.new_version"); //A newer version of Amua is available ("+gitVersion+"). Would you like to download it?
 					String formatted=MessageFormat.format(message, gitVersion);
@@ -2453,6 +2455,49 @@ public class frmMain {
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * True only if remote is a strictly higher version than local.  Comparing the two version
+	 * strings for inequality instead would prompt a fork that runs ahead of the public release to
+	 * "update" itself back down to it, and would rank 0.3.10 below 0.3.9.
+	 * Anything that cannot be read as a dotted number never prompts.
+	 */
+	private static boolean isNewerVersion(String remote, String local){
+		int remoteParts[]=parseVersion(remote);
+		int localParts[]=parseVersion(local);
+		if(remoteParts==null || localParts==null){return(false);}
+		int numParts=Math.max(remoteParts.length,localParts.length);
+		for(int i=0; i<numParts; i++){
+			int r=i<remoteParts.length?remoteParts[i]:0; //0.4 and 0.4.0 are the same version
+			int l=i<localParts.length?localParts[i]:0;
+			if(r!=l){return(r>l);}
+		}
+		return(false); //identical
+	}
+
+	/**
+	 * Splits a version into its numeric parts, ignoring any trailing label (0.3.7-test).
+	 * Returns null if there is no leading number to compare.
+	 */
+	private static int[] parseVersion(String version){
+		if(version==null){return(null);}
+		String trimmed=version.trim();
+		int end=0;
+		while(end<trimmed.length() && (Character.isDigit(trimmed.charAt(end)) || trimmed.charAt(end)=='.')){end++;}
+		String numeric=trimmed.substring(0,end);
+		if(numeric.isEmpty()){return(null);}
+		String parts[]=numeric.split("\\.");
+		int values[]=new int[parts.length];
+		for(int i=0; i<parts.length; i++){
+			if(parts[i].isEmpty()){return(null);}
+			try{
+				values[i]=Integer.parseInt(parts[i]);
+			}catch(NumberFormatException e){
+				return(null);
+			}
+		}
+		return(values);
 	}
 
 	private void exit(){
