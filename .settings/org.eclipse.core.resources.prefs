@@ -42,6 +42,7 @@ encoding//src/math/Operators.java=UTF-8
 encoding//src/math/Token.java=UTF-8
 encoding//src/math/TokenOLD.java=UTF-8
 encoding//src/math/distributions/Beta.java=UTF-8
+encoding//src/math/distributions/Binomial.java=UTF-8
 encoding//src/math/distributions/Cauchy.java=UTF-8
 encoding//src/math/distributions/ChiSquare.java=UTF-8
 encoding//src/math/distributions/Dirichlet.java=UTF-8

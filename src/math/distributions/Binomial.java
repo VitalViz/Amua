@@ -228,7 +228,7 @@ public final class Binomial{
 		des+=MathUtils.consoleFont("n")+": "+language.dist.getString("gen.num_trials")+"<br>"; //Number of trials (Integer >0)
 		des+=MathUtils.consoleFont("p")+": "+language.dist.getString("desc.prob_success")+"<br>"; //Probability of success
 		des+="<i><br>"+language.dist.getString("gen.sample")+"</i><br>"; //Sample
-		des+=MathUtils.consoleFont("<b>Bin</b>","green")+MathUtils.consoleFont("(n,p,<b><i>~</i></b>)")+": "+language.dist.getString("desc.sample")+". "+language.dist.getString("bin.support")+"<br>"; //Returns a random variable (mean in base case) from the Binomial distribution. Integer in {0,1,…,n}
+		des+=MathUtils.consoleFont("<b>Bin</b>","green")+MathUtils.consoleFont("(n,p,<b><i>~</i></b>)")+": "+language.dist.getString("desc.sample")+". "+language.dist.getString("bin.support")+"<br>"; //Returns a random variable (mean in base case) from the Binomial distribution. Integer in {0,1,â€¦,n}
 		des+="<i><br>"+language.dist.getString("gen.distribution_functions")+"</i><br>"; //Distribution Functions
 		des+=MathUtils.consoleFont("<b>Bin</b>","green")+MathUtils.consoleFont("(k,n,p,<b><i>f</i></b>)")+": "+MessageFormat.format(language.dist.getString("desc.pmf"), "k")+"<br>"; //Returns the value of the Binomial PMF at k
 		des+=MathUtils.consoleFont("<b>Bin</b>","green")+MathUtils.consoleFont("(k,n,p,<b><i>F</i></b>)")+": "+MessageFormat.format(language.dist.getString("desc.cdf"), "k")+"<br>"; //Returns the value of the Binomial CDF at k
