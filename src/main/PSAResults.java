@@ -21,10 +21,7 @@ package main;
 import java.awt.Cursor;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -478,13 +475,20 @@ public class PSAResults{
 		progress.setMaximum(numIterations);
 		progress.setNote(myModel.language.message.getString("info.importing_psa_results")); //Importing PSA Results
 		
-		FileInputStream fstream = new FileInputStream(path);
-		DataInputStream in = new DataInputStream(fstream);
-		BufferedReader br = new BufferedReader(new InputStreamReader(in));
-		
+		//field delimiter + number format for this file, read from the head of the file
+		CSVUtils.CSVFormat fmt;
+		try{
+			fmt=CSVUtils.sniffFormat(path,myModel.language);
+		}catch(IOException e){
+			throw e;
+		}catch(Exception e){
+			throw new IOException(e.getMessage());
+		}
+		BufferedReader br = CSVUtils.openReader(path);
+
 		//map column headers
-		String strLine=br.readLine(); //Headers
-		String colNames[]=strLine.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+		String strLine=CSVUtils.stripBOM(br.readLine()); //Headers
+		String colNames[]=CSVUtils.splitHeader(strLine,fmt);
 		int numCol=colNames.length;
 		ArrayList<String> listNames=new ArrayList<String>();
 		for(int c=0; c<numCol; c++) {
@@ -574,7 +578,7 @@ public class PSAResults{
 				progress.setNote(myModel.language.message.getString("info.time_left")+": "+minutes+":"+seconds); //Time left
 
 				strLine=br.readLine();
-				String data[]=strLine.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+				String data[]=CSVUtils.splitLine(strLine,fmt);
 				
 				//get parameter values
 				for(int p=0; p<numParams; p++) {

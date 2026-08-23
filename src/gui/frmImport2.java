@@ -56,6 +56,8 @@ import export_R.RTreeMonteCarlo;
 import filters.AmuaModelFilter;
 import filters.CSVFilter;
 import main.Constraint;
+import main.CSVUtils;
+import main.CSVUtils.CSVFormat;
 import main.Parameter;
 import main.ScaledIcon;
 import main.Variable;
@@ -65,11 +67,7 @@ import tree.TreeNode;
 
 import javax.swing.event.ListSelectionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
@@ -279,18 +277,18 @@ public class frmImport2 {
 					
 						boolean overwrite=chckbxOverwrite.isSelected();
 						int type=comboBox.getSelectedIndex();
-						myModel.saveSnapshot(myModel.language.base.getString("title.import_objects")); //Add to undo stack (Import Objects)
 
 						//read CSV
 						String path=textFilepath.getText();
-						FileInputStream fstream = new FileInputStream(path);
-						DataInputStream in = new DataInputStream(fstream);
-						BufferedReader br = new BufferedReader(new InputStreamReader(in));
-						String strLine;
-						strLine=br.readLine(); //Headers
-						strLine=br.readLine(); //First line
-						while(strLine!=null){
-							String data[]=strLine.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+						ArrayList<String> lines=CSVUtils.readLines(path);
+						CSVFormat fmt=CSVUtils.detectFormat(lines,myModel.language); //field delimiter + number format for this file
+
+						myModel.saveSnapshot(myModel.language.base.getString("title.import_objects")); //Add to undo stack (Import Objects)
+
+						for(int row=1; row<lines.size(); row++){ //row 0 = headers
+							String strLine=lines.get(row);
+							if(strLine.trim().isEmpty()){continue;}
+							String data[]=CSVUtils.splitLine(strLine,fmt);
 							if(type==0) { //parameters
 								//define parameter
 								Parameter curParam=new Parameter();
@@ -365,13 +363,16 @@ public class frmImport2 {
 								myModel.mainForm.modelConstraints.addRow(new Object[]{curConst.name,curConst.expression});
 							}
 							
-							strLine=br.readLine(); //next line
 						}
-						br.close();
 
 						myModel.validateModelObjects(); //Update all model objects
 						myModel.rescale(myModel.scale); //Re-validates textfields
-						
+
+						if(fmt.hasSummary()) { //report how the file was read
+							JOptionPane.showMessageDialog(frmImport2, fmt.describe(myModel.language),
+									myModel.language.base.getString("title.csv_import_summary"), JOptionPane.INFORMATION_MESSAGE); //CSV Import Summary
+						}
+
 						frmImport2.dispose();
 						
 					} catch(Exception e1) {

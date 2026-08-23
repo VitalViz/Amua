@@ -30,14 +30,11 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
-import java.io.InputStreamReader;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import javax.swing.DefaultCellEditor;
@@ -63,6 +60,8 @@ import javax.swing.table.TableCellEditor;
 import base.AmuaModel;
 import filters.CSVFilter;
 import lang.Language;
+import main.CSVUtils;
+import main.CSVUtils.CSVFormat;
 import main.ErrorLog;
 import main.ScaledIcon;
 import main.Table;
@@ -350,33 +349,31 @@ public class frmDefineTable {
 						int returnVal = fc.showOpenDialog(frmDefineTable);
 						if (returnVal == JFileChooser.APPROVE_OPTION) {
 							File file = fc.getSelectedFile();
-							FileInputStream fstream = new FileInputStream(file);
-							DataInputStream in = new DataInputStream(fstream);
-							BufferedReader br = new BufferedReader(new InputStreamReader(in));
-							String strLine;
-							model.setRowCount(0);
-							strLine=br.readLine(); //Headers
-							//check for BOM
-							String BOM = "\uFEFF";
-							strLine=strLine.replace(BOM,"");
-							
-							String data[]=strLine.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-							int colNum=data.length;
-							model.setColumnCount(0);
-							for(int c=0; c<colNum; c++){
-								model.addColumn(data[c]); //Column headers
+							ArrayList<String> lines=CSVUtils.readLines(file.getAbsolutePath()); //strips any BOM
+							CSVFormat fmt=CSVUtils.detectFormat(lines,myModel.language); //field delimiter + number format for this file
+							if(!lines.isEmpty()){
+								model.setRowCount(0);
+								String data[]=CSVUtils.splitHeader(lines.get(0),fmt);
+								int colNum=data.length;
+								model.setColumnCount(0);
+								for(int c=0; c<colNum; c++){
+									model.addColumn(data[c]); //Column headers
+								}
+								if(comboType.getSelectedIndex()==2){refreshMatrixColNames();}
+								for(int row=1; row<lines.size(); row++){ //row 0 = headers
+									String strLine=lines.get(row);
+									if(strLine.trim().isEmpty()){continue;}
+									model.addRow(CSVUtils.splitLine(strLine,fmt));
+								}
 							}
-							if(comboType.getSelectedIndex()==2){refreshMatrixColNames();}
-							strLine=br.readLine(); //First line
-							while(strLine!=null){
-								data=strLine.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-								model.addRow(data);
-								strLine=br.readLine();
-							}
-							br.close();
 
 							textNumRows.setText(model.getRowCount()+"");
 							textNumCols.setText(model.getColumnCount()+"");
+
+							if(fmt.hasSummary()){ //report how the file was read
+								JOptionPane.showMessageDialog(frmDefineTable, fmt.describe(myModel.language),
+										myModel.language.base.getString("title.csv_import_summary"), JOptionPane.INFORMATION_MESSAGE); //CSV Import Summary
+							}
 						}
 
 					}catch(Exception er){

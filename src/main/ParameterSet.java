@@ -56,8 +56,8 @@ public class ParameterSet{
 		}
 	}
 	
-	public void parseCSVLine(String strLine, AmuaModel myModel) throws Exception {
-		String data[]=strLine.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+	public void parseCSVLine(String strLine, CSVUtils.CSVFormat fmt, AmuaModel myModel) throws Exception {
+		String data[]=CSVUtils.splitLine(strLine,fmt);
 		id=data[0];
 		score=Double.parseDouble(data[1]);
 		int numParams=data.length-2;

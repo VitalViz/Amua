@@ -45,9 +45,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -102,6 +100,8 @@ import filters.TXTFilter;
 import lang.Language;
 import main.Console;
 import main.Constraint;
+import main.CSVUtils;
+import main.CSVUtils.CSVFormat;
 import main.ErrorLog;
 import main.Parameter;
 import main.ParameterSet;
@@ -1581,11 +1581,10 @@ public class frmMain {
 					int returnVal = fc.showDialog(frmMain, language.base.getString("menu.import")); //Import
 					if (returnVal == JFileChooser.APPROVE_OPTION) {
 						File file = fc.getSelectedFile();
-						FileInputStream fstream = new FileInputStream(file);
-						DataInputStream in = new DataInputStream(fstream);
-						BufferedReader br = new BufferedReader(new InputStreamReader(in));
-						String strLine=br.readLine().replaceAll("\"", ""); //Headers
-						String headers[]=strLine.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+						ArrayList<String> lines=CSVUtils.readLines(file.getAbsolutePath()); //strips any BOM
+						CSVFormat fmt=CSVUtils.detectFormat(lines,language); //field delimiter + number format for this file
+						String headers[]=CSVUtils.splitHeader(lines.isEmpty()?"":lines.get(0),fmt);
+						for(int h=0; h<headers.length; h++){headers[h]=headers[h].replaceAll("\"", "");} //strip quotes
 						String paramNames[] = null;
 						//get parameter indices
 						boolean ok=true;
@@ -1616,12 +1615,12 @@ public class frmMain {
 
 						if(ok==true) {
 							ArrayList<ParameterSet> sets=new ArrayList<ParameterSet>();
-							strLine=br.readLine(); //first set
-							while(strLine!=null) {
+							for(int row=1; row<lines.size(); row++) { //row 0 = headers
+								String strLine=lines.get(row);
+								if(strLine.trim().isEmpty()){continue;}
 								ParameterSet curSet=new ParameterSet();
-								curSet.parseCSVLine(strLine, curModel);
+								curSet.parseCSVLine(strLine, fmt, curModel);
 								sets.add(curSet);
-								strLine=br.readLine();
 							}
 
 							//add to model
@@ -1633,8 +1632,12 @@ public class frmMain {
 								curModel.parameterSets[s]=sets.get(s);
 							}
 							curModel.refreshParamSetsTable();
+
+							if(fmt.hasSummary()) { //report how the file was read
+								JOptionPane.showMessageDialog(frmMain, fmt.describe(language),
+										language.base.getString("title.csv_import_summary"), JOptionPane.INFORMATION_MESSAGE); //CSV Import Summary
+							}
 						}
-						br.close();
 
 					}
 
