@@ -19,6 +19,8 @@
 package main;
 
 import java.awt.EventQueue;
+import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -38,10 +40,11 @@ public class Amua {
 		//against upstream.  Keep it on every future bump; build.ps1 will not build without it.
 		String version="0.3.7_vs";
 		
-		boolean gui=true;
-		if(args.length>0) {
-			gui=false;
-		}
+		//Windows hands a double-clicked model to us as a command line argument, and so does Linux
+		//through a .desktop entry.  A cluster run always passes four arguments (model, inputs,
+		//output path, iteration), so arguments that are all .amua paths can only mean "open these".
+		ArrayList<File> modelFiles=getModelFiles(args);
+		boolean gui=(args.length==0 || modelFiles!=null);
 
 		if(gui==true) { //show desktop gui
 			//get current OS
@@ -68,6 +71,12 @@ public class Amua {
 					try {
 						frmMain window = new frmMain(version);
 						window.frmMain.setVisible(true);
+						//before the update check, which reaches the network and would delay the model
+						if(modelFiles!=null) {
+							for(int i=0; i<modelFiles.size(); i++) {
+								window.openModel(modelFiles.get(i)); //reports its own errors to the console
+							}
+						}
 						window.checkUpdates();
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -78,6 +87,30 @@ public class Amua {
 		else { //process arguments for cluster run
 			new ClusterRun(args,version);
 		}
-	
+
+	}
+
+	/**
+	 * The model files named on the command line, or null if the arguments are anything else and
+	 * should go to a cluster run.  Every argument has to be a .amua path to qualify, so the four
+	 * arguments of a cluster run can never be mistaken for a request to open a model.
+	 * <br><br>
+	 * The file is not required to exist: opening the window and reporting the missing file is far
+	 * more use than the silence a user would otherwise get from a stale shortcut.
+	 * <br><br>
+	 * macOS never comes through here.  It launches the application with no arguments and then
+	 * sends an open-document event, which java.awt.Desktop exposes as an open file handler; that
+	 * handler would call frmMain.openModel in the same way this does.
+	 */
+	private static ArrayList<File> getModelFiles(String args[]) {
+		if(args.length==0) {return(null);}
+		ArrayList<File> files=new ArrayList<File>();
+		for(int i=0; i<args.length; i++) {
+			if(args[i]==null || !args[i].toLowerCase().endsWith(".amua")) {
+				return(null); //not a model file, so these are cluster run arguments
+			}
+			files.add(new File(args[i]));
+		}
+		return(files);
 	}
 }
