@@ -22,6 +22,7 @@ import java.awt.EventQueue;
 import java.io.File;
 import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
@@ -45,6 +46,12 @@ public class Amua {
 		//output path, iteration), so arguments that are all .amua paths can only mean "open these".
 		ArrayList<File> modelFiles=getModelFiles(args);
 		boolean gui=(args.length==0 || modelFiles!=null);
+
+		//A model opened from the desktop belongs in the window that is already up, as another tab.
+		//Checked before anything is built so that nothing flashes on screen on the way out.
+		if(modelFiles!=null && SingleInstance.handOff(modelFiles)) {
+			return;
+		}
 
 		if(gui==true) { //show desktop gui
 			//get current OS
@@ -77,6 +84,8 @@ public class Amua {
 								window.openModel(modelFiles.get(i)); //reports its own errors to the console
 							}
 						}
+						SingleInstance.listen(window); //later launches hand their models to us
+						registerFileAssociation(window);
 						window.checkUpdates();
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -88,6 +97,34 @@ public class Amua {
 			new ClusterRun(args,version);
 		}
 
+	}
+
+	/**
+	 * Points Windows at this copy of Amua for .amua files, so a model opens on a double-click.
+	 * Runs off the event thread because it shells out to the registry, and does nothing at all
+	 * on other platforms or when Amua is started from a plain jar.
+	 */
+	private static void registerFileAssociation(final frmMain window) {
+		Thread thread=new Thread(new Runnable() {
+			public void run() {
+				WindowsFileAssociation.Status status=WindowsFileAssociation.registerIfNeeded();
+				//Windows honours a file type the user picked themselves, and no program is allowed
+				//to override it, so the last step has to be theirs.  Said once, never repeated.
+				if(status==WindowsFileAssociation.Status.USER_CHOICE_ELSEWHERE
+						&& WindowsFileAssociation.shouldWarnOnce()) {
+					EventQueue.invokeLater(new Runnable() {
+						public void run() {
+							JOptionPane.showMessageDialog(window.frmMain,
+									window.language.message.getString("info.file_assoc_user_choice"),
+									window.language.base.getString("title.file_association"),
+									JOptionPane.INFORMATION_MESSAGE);
+						}
+					});
+				}
+			}
+		});
+		thread.setDaemon(true); //must never hold the application open
+		thread.start();
 	}
 
 	/**
