@@ -63,11 +63,21 @@ restores it; both are copied into the package by the build.
 
 ## Notes
 
-**The icon.** If `packaging\windows\Amua.ico` exists, the build passes it to `jpackage` and it
-becomes the launcher icon, the taskbar icon, and — because the file association points at the
-launcher — the icon Explorer shows on `.amua` files. Without it the launcher keeps jpackage's
-generic icon, and the build says so. The repository currently has only PNG logos in
-`src\images\`; Windows icon resources have to be `.ico`.
+**The two icons.** Both live in `packaging\windows\` and both have to be `.ico`; Windows will not
+take a PNG for either purpose.
+
+- `Amua.ico` is passed to `jpackage` and **compiled into `Amua.exe`**, so it becomes the launcher,
+  taskbar and Start menu icon. It is not a loose file in the package.
+- `Amua Model.ico` is what Explorer draws on `.amua` files. This one cannot be compiled in,
+  because the registry points at an icon **by path**, so the build copies it to `app\` inside the
+  package and Amua registers that path. If it is missing, `.amua` files fall back to the launcher
+  icon and the build says so.
+
+Each should hold the usual run of sizes — 16, 24, 32, 48, 64, 96, 128 and 256 — because Windows
+picks one per context, and 16 and 32 are the sizes people actually see.
+
+Explorer caches file type icons hard. After a change, `ie4uinit.exe -ClearIconCache` and
+restarting Explorer usually refreshes them; a reboot always does.
 
 **Which modules go into the runtime.** `build.ps1` lists them explicitly, which is what keeps the
 package near 92 MB rather than shipping a whole JDK. If a future change needs another module, the

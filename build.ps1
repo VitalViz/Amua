@@ -290,6 +290,13 @@ if ($AppImage) {
 	Copy-Item (Join-Path $root "packaging\windows\register-amua.bat") $image
 	Copy-Item (Join-Path $root "packaging\windows\unregister-amua.bat") $image
 
+	# The icon Explorer draws on .amua files. Unlike the launcher icon this one
+	# cannot be compiled in: the registry points at it by path, so it has to be a
+	# real file in the package. WindowsFileAssociation looks for it here.
+	$docIcon = Join-Path $root "packaging\windows\Amua Model.ico"
+	if (Test-Path $docIcon) { Copy-Item $docIcon (Join-Path $image "app") }
+	else { Write-Host "  (no document icon, so .amua files will show the launcher icon)" }
+
 	$size = [Math]::Round((Get-ChildItem $image -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB, 0)
 	Write-Host "App image -> $image ($size MB, no Java needed to run it)"
 	Write-Host "Zip that folder and attach it to the release as Amua_${version}_windows.zip"

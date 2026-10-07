@@ -46,6 +46,8 @@ public final class WindowsFileAssociation{
 
 	private static final String EXT=".amua";
 	private static final String PROG_ID="Amua.Model";
+	/** Shipped into the application folder by build.ps1 when the repository has one */
+	private static final String DOCUMENT_ICON="Amua Model.ico";
 	private static final String CLASSES="HKCU" + sep() + "Software" + sep() + "Classes";
 	private static final String USER_CHOICE="HKCU" + sep() + "Software" + sep() + "Microsoft" + sep()
 			+ "Windows" + sep() + "CurrentVersion" + sep() + "Explorer" + sep() + "FileExts" + sep()
@@ -106,7 +108,14 @@ public final class WindowsFileAssociation{
 					+ sep() + "command", null);
 			boolean firstTime=(current==null);
 
-			if(!wanted.equalsIgnoreCase(current==null?"":current.trim())){
+			//The icon is compared as well as the command, so that a build which starts shipping a
+			//document icon updates an installation that was registered before it existed.
+			String wantedIcon=documentIcon(appPath);
+			String currentIcon=readRegistry(CLASSES + sep() + PROG_ID + sep() + "DefaultIcon", null);
+			boolean sameCommand=wanted.equalsIgnoreCase(current==null?"":current.trim());
+			boolean sameIcon=wantedIcon.equalsIgnoreCase(currentIcon==null?"":currentIcon.trim());
+
+			if(!sameCommand || !sameIcon){
 				if(!writeAssociation(appPath)){
 					return(Status.FAILED);
 				}
@@ -161,7 +170,7 @@ public final class WindowsFileAssociation{
 	/** The registry script, kept separate from writing it so that it can be inspected and tested */
 	static String buildRegFile(String appPath){
 		String command=regValue(quote() + appPath + quote() + " " + quote() + "%1" + quote());
-		String icon=regValue(quote() + appPath + quote() + ",0"); //quoted: the path may hold spaces
+		String icon=regValue(documentIcon(appPath));
 		String launcher=new File(appPath).getName(); //Amua.exe
 
 		StringBuilder reg=new StringBuilder();
@@ -189,6 +198,21 @@ public final class WindowsFileAssociation{
 	private static void key(StringBuilder reg, String hkcuPath){
 		//the .reg format spells the hive out in full
 		reg.append("[").append(hkcuPath.replaceFirst("HKCU","HKEY_CURRENT_USER")).append("]\r\n");
+	}
+
+	/**
+	 * What Explorer should draw on a .amua file: the document icon shipped beside the jar when it
+	 * is there, otherwise the launcher's own icon, which is what a plain build still has.
+	 */
+	private static String documentIcon(String appPath){
+		File installDir=new File(appPath).getParentFile();
+		if(installDir!=null){
+			File ico=new File(new File(installDir, "app"), DOCUMENT_ICON);
+			if(ico.exists()){
+				return(quote() + ico.getAbsolutePath() + quote() + ",0");
+			}
+		}
+		return(quote() + appPath + quote() + ",0"); //quoted: the path may hold spaces
 	}
 
 	/** A value as a .reg file writes it: wrapped in quotes, with backslashes and quotes escaped */
