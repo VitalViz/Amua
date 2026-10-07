@@ -39,7 +39,7 @@ public class Amua {
 		//release of the same number.  It reaches the jar name, the About box, the error log and
 		//the version stamped into saved models, and the update check ignores it when comparing
 		//against upstream.  Keep it on every future bump; build.ps1 will not build without it.
-		String version="0.3.7_vs";
+		String version="0.3.8_vs";
 		
 		//Windows hands a double-clicked model to us as a command line argument, and so does Linux
 		//through a .desktop entry.  A cluster run always passes four arguments (model, inputs,
