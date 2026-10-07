@@ -25,7 +25,8 @@ param(
 	[switch]$Run,
 	[switch]$Jar,
 	[switch]$Clean,
-	[switch]$GetLibs
+	[switch]$GetLibs,
+	[switch]$AppImage
 )
 
 $ErrorActionPreference = "Stop"
@@ -217,6 +218,81 @@ if ($Jar) {
 	Write-Host "Packaged -> $jarFile ($mb MB, self-contained)"
 	Write-Host "Run it with: java -jar `"$jarFile`""
 	Write-Host "Tag this release as: git tag -a v$version -m `"Amua $version`""
+}
+
+# --- Windows app image ------------------------------------------------------
+# A self-contained folder holding a launcher, the application jar and a trimmed
+# Java runtime, so a user needs no Java installed and no administrator rights.
+
+if ($AppImage) {
+	if (-not $Jar) { throw "-AppImage needs the jar. Run: .\build.ps1 -Jar -AppImage" }
+	if ($env:OS -ne "Windows_NT") { throw "jpackage cannot cross-build: a Windows app image has to be built on Windows." }
+	$jpackage = Get-Command jpackage -ErrorAction SilentlyContinue
+	if ($null -eq $jpackage) { throw "jpackage was not found on the PATH. It ships with the JDK (14 and later)." }
+
+	Write-Host "Building the Windows app image"
+
+	# jpackage wants a plain numeric version, so the fork suffix is dropped here
+	# only; the jar name and everything the application reports keep it.
+	$appVersion = ($version -replace '[^0-9.].*$', '')
+	if ($appVersion -notmatch '^\d+(\.\d+)*$') { throw "Could not read a numeric version out of '$version'." }
+
+	# jpackage copies everything in --input into the image, so it is given a
+	# directory holding the jar and nothing else.
+	$inputDir = Join-Path $dist "_appimage-input"
+	if (Test-Path $inputDir) { Remove-Item -Recurse -Force $inputDir }
+	New-Item -ItemType Directory $inputDir | Out-Null
+	Copy-Item $jarFile $inputDir
+
+	$imageParent = Join-Path $dist "app-image"
+	if (Test-Path $imageParent) { Remove-Item -Recurse -Force $imageParent }
+	New-Item -ItemType Directory $imageParent | Out-Null
+
+	# The modules the application actually needs. Letting jpackage build the
+	# runtime from this list keeps it near 80 MB instead of a whole JDK, and
+	# produces a clean launcher configuration rather than one to be hand-edited.
+	#   java.desktop      Swing
+	#   java.xml          JAXB, which reads and writes .amua files
+	#   java.datatransfer clipboard
+	#   java.prefs        the one-time notice flag
+	#   java.logging      used by the dependencies
+	#   jdk.charsets      non-Latin encodings
+	#   jdk.unsupported   sun.misc.Unsafe, which the JAXB runtime still uses
+	$modules = "java.base,java.datatransfer,java.desktop,java.logging,java.prefs,java.xml,jdk.charsets,jdk.unsupported"
+
+	$jpackageArgs = @(
+		"--type", "app-image",
+		"--name", "Amua",
+		"--app-version", $appVersion,
+		"--input", $inputDir,
+		"--main-jar", (Split-Path $jarFile -Leaf),
+		"--main-class", "main.Amua",
+		"--dest", $imageParent,
+		"--add-modules", $modules,
+		"--vendor", "Vital Strategies",
+		"--description", "Amua decision analytic modeling framework"
+	)
+	# Supplying an icon also gives .amua files their picture in Explorer, because
+	# the file association registers this launcher as the icon source.
+	$icon = Join-Path $root "packaging\windows\Amua.ico"
+	if (Test-Path $icon) { $jpackageArgs += @("--icon", $icon) }
+	else { Write-Host "  (no packaging\windows\Amua.ico, so the launcher keeps the generic jpackage icon)" }
+
+	& jpackage @jpackageArgs
+	if ($LASTEXITCODE -ne 0) { throw "jpackage failed." }
+	Remove-Item -Recurse -Force $inputDir
+
+	$image = Join-Path $imageParent "Amua"
+
+	# Shipped inside the image so a user can undo or restore the file
+	# association. Amua registers itself on first run, so there is nothing to run
+	# to set it up.
+	Copy-Item (Join-Path $root "packaging\windows\register-amua.bat") $image
+	Copy-Item (Join-Path $root "packaging\windows\unregister-amua.bat") $image
+
+	$size = [Math]::Round((Get-ChildItem $image -Recurse -File | Measure-Object -Property Length -Sum).Sum / 1MB, 0)
+	Write-Host "App image -> $image ($size MB, no Java needed to run it)"
+	Write-Host "Zip that folder and attach it to the release as Amua_${version}_windows.zip"
 }
 
 # --- run --------------------------------------------------------------------
